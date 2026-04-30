@@ -1,0 +1,28 @@
+name: Okepi Monitor
+on:
+  schedule:
+    - cron: '*/5 * * * *' # 5分ごとに実行
+  workflow_dispatch: # 手動実行ボタン
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run script
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python monitor.py
+      - name: Commit and Push # 更新があったらlast_id.txtを保存する
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add last_id.txt
+          git commit -m "Update last_id" || exit 0
+          git push
